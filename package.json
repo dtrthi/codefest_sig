@@ -1,8 +1,8 @@
 {
   "devDependencies": {
+    "@types/node": "^22.7.5",
     "gts": "^6.0.2",
-    "typescript": "^5.7.2",
-    "@types/node": "^22.7.5"
+    "typescript": "^5.7.2"
   },
   "scripts": {
     "lint": "gts lint",
@@ -12,5 +12,8 @@
     "prepare": "npm run compile",
     "pretest": "npm run compile",
     "posttest": "npm run lint"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.1"
   }
 }
