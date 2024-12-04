@@ -9,8 +9,8 @@ export interface TicktackInfo {
 
 interface MapInfo {
   size: MapInfoSize;
-  players: MapPlayer[];
-  map: MapCellType[][];
+  players: PlayerInfo[];
+  map: MapArr;
   bombs: Bomb[];
   spoils: Spoil[];
   weaponHammers: WeaponHammer[];
@@ -24,7 +24,7 @@ interface MapInfoSize {
   rows: number;
 }
 
-interface MapPlayer {
+export interface PlayerInfo {
   id: string;
   currentPosition: Position;
   spawnBegin: Position;
@@ -49,7 +49,7 @@ interface MapPlayer {
   brickWall: number;
 }
 
-interface Position {
+export interface Position {
   col: number;
   row: number;
 }
@@ -99,7 +99,7 @@ type WoodenPestleTag = 'wooden-pestle:setup';
 
 type WeaponWindTag = 'wind:exploded';
 
-type Tag =
+export type Tag =
   | PlayerTag
   | BombTag
   | GameTag
@@ -108,22 +108,17 @@ type Tag =
   | WoodenPestleTag
   | WeaponWindTag;
 
-type MapEmptyCell = 0;
-type MapWall = 1;
-type MapBalk = 2;
-type MapBrickWall = 3;
-type MapPrisonPlace = 5;
-type MapGodBadge = 6;
-type MapCellDestroyed = 7;
+export enum MapCellType {
+  EmptyCell = 0,
+  Wall = 1,
+  Balk = 2,
+  BrickWall = 3,
+  PrisonPlace = 5,
+  GodBadge = 6,
+  CellDestroyed = 7,
+}
 
-type MapCellType =
-  | MapEmptyCell
-  | MapWall
-  | MapBalk
-  | MapBrickWall
-  | MapPrisonPlace
-  | MapGodBadge
-  | MapCellDestroyed;
+export type MapArr = MapCellType[][];
 
 type SpoilType =
   | StickyRice
@@ -141,16 +136,16 @@ type NineManeHairHorse = 36;
 type HolySpiritStone = 37;
 
 interface WeaponHammer {
-    playerId: string;
-    power: number;
-    destination: Position;
-    createdAt: number;
+  playerId: string;
+  power: number;
+  destination: Position;
+  createdAt: number;
 }
 
 interface WeaponWind {
-    playerId: string;
-    currentRow: number;
-    currentCol: number;
-    createdAt: number;
-    destination: Position;
+  playerId: string;
+  currentRow: number;
+  currentCol: number;
+  createdAt: number;
+  destination: Position;
 }

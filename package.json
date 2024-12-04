@@ -1,10 +1,13 @@
 {
   "devDependencies": {
     "@types/node": "^22.7.5",
+    "@types/sqlite3": "^3.1.11",
     "gts": "^6.0.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   },
   "scripts": {
+    "dev": "ts-node src/index.ts",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",
@@ -14,6 +17,8 @@
     "posttest": "npm run lint"
   },
   "dependencies": {
-    "socket.io-client": "^4.8.1"
+    "socket.io-client": "^4.8.1",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.0.3"
   }
 }
