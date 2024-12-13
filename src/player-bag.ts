@@ -16,11 +16,15 @@ export class PlayerBag {
   run(client: ClientConnection, payload: TicktackInfo) {
     this.activeIds = [];
     const players = payload.map_info.players;
+    const teamIds = [];
     for (const player of players) {
-      if (player.id !== this.config?.playerId) {
+      const isChild = player.id.includes('_child');
+      const stripedId = player.id.replace(/_child/, '');
+      if (!this.config?.playerId?.includes(stripedId)) {
         continue;
       }
       this.activeIds.push(player.id);
+      teamIds.push(player.id);
       if (!this.players[player.id]) {
         const paceMeasurement = new PaceMeasurement();
         this.players[player.id] = new PlayerAction(
@@ -28,6 +32,7 @@ export class PlayerBag {
           payload,
           client,
           paceMeasurement,
+          isChild,
         );
       } else {
         this.players[player.id].info = player;
@@ -38,6 +43,7 @@ export class PlayerBag {
       if (this.halt) {
         continue;
       }
+      this.players[playerId].teamIds = teamIds;
       this.players[playerId].consumeTicktack(payload);
       this.players[playerId].nextAction();
     }

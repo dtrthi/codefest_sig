@@ -1,18 +1,31 @@
-import {Direction, DirectionPath, inPosArray, TreeNode} from './position';
+import {
+  Direction,
+  DirectionPath,
+  inPosArray,
+  samePosition,
+  TreeNode,
+} from './position';
 import {MapArr, MapCellType, Position} from './ticktack-info';
 
 export class MapScanner {
+  targets: TreeNode[] = [];
+
   constructor(
     private map: MapArr,
     private start: Position,
+    private power: number,
+    private dangerPositions: Position[],
+    private blockedPositions: Position[],
     private filter: (map: MapArr, p: Position) => boolean,
-  ) {}
+  ) {
+    this.scan();
+  }
 
-  nextTarget(): DirectionPath | null {
+  scan() {
     const rootNode = new TreeNode(this.start);
     const queue: TreeNode[] = [rootNode];
     const visited: Position[] = [];
-    const targets: TreeNode[] = [];
+    this.targets = [];
 
     while (queue.length) {
       const node = queue.shift();
@@ -26,19 +39,38 @@ export class MapScanner {
         if (this.safeToReach(neighbor)) {
           const v = this.map[neighbor.row][neighbor.col];
           const neighborNode = new TreeNode(neighbor, node, v);
-          if (this.canPassThrough(neighbor)) {
+          neighborNode.hitBox = this.countBoxHit(neighbor);
+          if (
+            this.shouldPassDanger(neighbor) &&
+            this.canPassThrough(neighbor) &&
+            !inPosArray(this.blockedPositions, neighbor)
+          ) {
             queue.push(neighborNode);
           }
-          if (this.filter(this.map, neighbor)) {
-            targets.push(neighborNode);
+          if (
+            !inPosArray(this.blockedPositions, neighbor) &&
+            this.filter(this.map, neighbor)
+          ) {
+            this.targets.push(neighborNode);
           }
         }
       }
     }
+  }
 
-    if (targets.length) {
-      const selectedIndex = Math.floor(Math.random() * targets.length);
-      const selected = targets[selectedIndex];
+  nextTarget(
+    targetSelector?: (targets: TreeNode[]) => TreeNode | null,
+  ): DirectionPath | null {
+    const randomSelector = (nodes: TreeNode[]) => {
+      const selectedIndex = Math.floor(Math.random() * nodes.length);
+      const selected = nodes[selectedIndex];
+      return selected;
+    };
+    if (!targetSelector) {
+      targetSelector = randomSelector;
+    }
+    if (this.targets.length) {
+      const selected = targetSelector(this.targets);
       if (selected) {
         return TreeNode.tracePath(selected);
       }
@@ -93,14 +125,22 @@ export class MapScanner {
 
     const second = Math.floor(Math.random() * 3) + 1;
     if (result.includes(second)) {
-      result.push(second + 1);
+      let check = second + 1;
+      while (result.includes(check)) {
+        check = check + 1;
+      }
+      result.push(check);
     } else {
       result.push(second);
     }
 
     const third = Math.floor(Math.random() * 2) + 1;
     if (result.includes(third)) {
-      result.push(third + 1);
+      let check = third + 1;
+      while (result.includes(check)) {
+        check = check + 1;
+      }
+      result.push(check);
     } else {
       result.push(third);
     }
@@ -143,11 +183,87 @@ export class MapScanner {
   }
 
   canPassThrough(p: Position): boolean {
-    if (this.map[p.row][p.col] === MapCellType.EmptyCell) {
+    return MapScanner.passThrough(this.map, p);
+  }
+
+  static passThrough(map: MapArr, p: Position): boolean {
+    if (map[p.row][p.col] === MapCellType.EmptyCell) {
       return true;
     }
-    if (this.map[p.row][p.col] === MapCellType.GodBadge) {
+    if (map[p.row][p.col] === MapCellType.GodBadge) {
       return true;
+    }
+    return false;
+  }
+
+  shouldPassDanger(p: Position): boolean {
+    if (
+      !inPosArray(this.dangerPositions, this.start) &&
+      inPosArray(this.dangerPositions, p)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  countBoxHit(p: Position): number {
+    return MapScanner.countBoxHit(p, this.map, this.power);
+  }
+
+  static countBoxHit(p: Position, map: MapArr, power: number): number {
+    if (!MapScanner.passThrough(map, p)) {
+      return 0;
+    }
+    let boxHit = 0;
+    const rowColExtractors = [
+      (i: number) => [p.row - i, p.col],
+      (i: number) => [p.row + i, p.col],
+      (i: number) => [p.row, p.col - i],
+      (i: number) => [p.row, p.col + i],
+    ];
+    for (const extractor of rowColExtractors) {
+      for (let i = 1; i <= power; i++) {
+        const [nextRow, nextCol] = extractor(i);
+        const np = map[nextRow][nextCol];
+        if (np === MapCellType.Balk) {
+          boxHit++;
+          break;
+        }
+        if (!MapScanner.passThrough(map, {row: nextRow, col: nextCol})) {
+          break;
+        }
+      }
+    }
+    return boxHit;
+  }
+
+  static hasHitTarget(
+    p: Position,
+    map: MapArr,
+    power: number,
+    targets: Position[],
+  ): boolean {
+    if (!targets.length) {
+      return false;
+    }
+
+    const rowColExtractors = [
+      (i: number) => [p.row - i, p.col],
+      (i: number) => [p.row + i, p.col],
+      (i: number) => [p.row, p.col - i],
+      (i: number) => [p.row, p.col + i],
+    ];
+    for (const extractor of rowColExtractors) {
+      for (let i = 1; i < power; i++) {
+        const [nextRow, nextCol] = extractor(i);
+        if (inPosArray(targets, {row: nextRow, col: nextCol})) {
+          return true;
+        }
+        if (!MapScanner.passThrough(map, {row: nextRow, col: nextCol})) {
+          break;
+        }
+      }
     }
     return false;
   }

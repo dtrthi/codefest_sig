@@ -158,10 +158,13 @@ export class ClientConnection {
       const currentPlayer = this.ticktack.map_info.players.find(
         player => player.id === this.config.playerId,
       );
-      if (currentPlayer?.currentPosition) {
+      if (currentPlayer) {
         const scanner = new MapScanner(
           this.ticktack.map_info.map,
-          currentPlayer?.currentPosition,
+          currentPlayer.currentPosition,
+          currentPlayer.power,
+          [],
+          [],
           (map: MapArr, p: Position) => {
             return p.row == row && p.col == col;
           },

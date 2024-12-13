@@ -54,16 +54,16 @@ export interface Position {
   row: number;
 }
 
-type Weapon = WoodenPestle | PhachThan;
+export enum Weapon {
+  WoodenPestle = 1,
+  PhachThan,
+}
 
-type WoodenPestle = 1;
-type PhachThan = 2;
-
-interface Bomb {
+export interface Bomb {
   row: number;
   col: number;
   remainTime: number;
-  playerId: number;
+  playerId: string;
   power: number;
   createdAt: number;
 }

@@ -8,6 +8,8 @@ export enum Direction {
 }
 
 export class TreeNode {
+  distance = 0;
+  hitBox = 0;
   direction?: Direction;
   constructor(
     public p: Position,
@@ -15,6 +17,7 @@ export class TreeNode {
     public v?: MapCellType,
   ) {
     if (parent) {
+      this.distance = parent.distance + 1;
       this.direction = calculateDirection(p, parent.p);
     }
   }
